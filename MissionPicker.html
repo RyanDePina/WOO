@@ -10,14 +10,6 @@
     />
     <script src="_icescrum_api.js"></script>
     <style>
-      #spinner {
-        width: 80px;
-        height: 80px;
-        left: 0px;
-        top: 0px;
-        opacity: 1;
-      }
-
       .code {
         font-family: "Courier New";
         font-weight: bolder;
@@ -31,6 +23,24 @@
         width: 40px;
         height: 40px;
         border: 1px solid grey;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1; /* Place l'élément en arrière-plan */
+
+        background-image: url("officeicons.png");
+        background-size: 36px 30px;
+        background-repeat: repeat;
+        opacity: 0.1; /* Contrôle l'opacité de l'élément */
+      }
+      body {
+        background-color: azure;
       }
     </style>
   </head>
