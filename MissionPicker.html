@@ -102,26 +102,46 @@
 
   function loadProject() {
     heaProjectTitle.innerText = projectId;
-    API_project_url = API_base_url + "POFFICEMAS";
-    output.innerHTML = "";
+    API_project_url = API_base_url + projectId;
     // Project name
     fetch(API_project_url + "/?icescrum-token=" + iceScrumToken)
       .then(function (response) {
         return response.json();
       })
       .then(function (data) {
-        document.title = "Sélecteur de missions P_OFFICE";
+        heaProjectTitle.innerText = data.name;
       });
-    appendContent(output);
+
+    API_source_url = API_base_url + "POFFICEMAS";
+    output.innerHTML = "";
+    // Project name
+    fetch(API_source_url + "/?icescrum-token=" + iceScrumToken)
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (data) {
+        document.title = "Sélecteur de missions P_OFFICE";
+        appendContent(output);
+      })
+      .catch(function (erreur) {
+        alert(
+          "Erreur de connexion au serveur IceScrum\n\nSi internet est ok (=vous pouvez atteindre icescrum.cpnv.ch avec votre navigateur), alors c'est probablement votre token est pourri ou que le projet P_OFFICE de base (POFFICEMAS) n'est pas atteignable"
+        );
+        window.close();
+      });
   }
 
   async function appendContent(output) {
     // Get all sprints
-    await fetch(API_project_url + "/sprint?icescrum-token=" + iceScrumToken)
+    await fetch(API_source_url + "/sprint?icescrum-token=" + iceScrumToken)
       .then(function (response) {
         return response.json();
       })
-      .then((data) => appendCurrentSprint(data, output))
+      .then(async function (sprints) {
+        for (story_id of sprints[0].stories_ids) {
+          await appendStory(story_id.id, output);
+        }
+      })
       .catch(function (erreur) {
         alert(
           "Erreur de connexion au serveur IceScrum\n\nSi internet est ok (=vous pouvez atteindre icescrum.cpnv.ch avec votre navigateur), alors c'est probablement que le code du projet est faux ou que votre token est pourri"
@@ -130,17 +150,10 @@
       });
   }
 
-  async function appendCurrentSprint(sprints, output) {
-    // consider only the first sprint
-    for (story_id of sprints[0].stories_ids) {
-      await appendStory(story_id.id, output);
-    }
-  }
-
   async function appendStory(storyid, output) {
     let storydiv = document.createElement("div");
     storydiv.classList.add("card", "shadow", "p-3", "mb-5", "bg-white", "rounded-lg");
-    await fetch(API_project_url + "/story/" + storyid + "?icescrum-token=" + iceScrumToken)
+    await fetch(API_source_url + "/story/" + storyid + "?icescrum-token=" + iceScrumToken)
       .then(function (response) {
         return response.json();
       })
@@ -161,7 +174,7 @@
   }
 
   async function appendTests(storyid, output) {
-    await fetch(API_project_url + "/acceptanceTest/story/" + story_id.id + "?icescrum-token=" + iceScrumToken)
+    await fetch(API_source_url + "/acceptanceTest/story/" + story_id.id + "?icescrum-token=" + iceScrumToken)
       .then(function (response) {
         return response.json();
       })
