@@ -290,8 +290,11 @@
               Accept: "application/json"
             }
           )
-          .then(function (response) {
-            planStory(response.data.id); // the story must be planned in order allow marking it as in review
+          .then(async function (response) {
+            // we must copy the story's tests manually, IceScrum API doesn't do it automatically
+            await copyTests(storysource, response.data);
+            // the story must be planned in order allow marking it as in review
+            await planStory(response.data.id);
             alert(storysource.notes_html);
           })
           .catch(function (error) {
@@ -340,5 +343,21 @@
       .catch(function (error) {
         console.log(error);
       });
+  }
+
+  // Copy the tests from a story of the master project to a story of the target project
+  async function copyTests(source, destination) {
+    await axios
+      .get(API_source_url + "/acceptanceTest/story/" + source.id + "?icescrum-token=" + iceScrumToken)
+      .then(async function (tests) {
+        for (test of tests.data) {
+          console.log(test);
+          test.parentStory = destination;
+          await axios
+            .post(API_project_url + "/acceptanceTest?icescrum-token=" + iceScrumToken, { acceptanceTest: test })
+            .catch((err) => console.log(err));
+        }
+      })
+      .catch((err) => console.log(err));
   }
 </script>
