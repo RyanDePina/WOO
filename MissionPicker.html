@@ -158,15 +158,27 @@
         return response.json();
       })
       .then(async function (story) {
+        // header
         let header = document.createElement("div");
         header.classList.add("card-header");
         header.innerHTML = "<h5>" + story.name + "</h5>" + story.description;
         storydiv.appendChild(header);
         let tests = document.createElement("div");
+
+        // body
+        let p = document.createElement("p");
+        p.innerHTML = 'Vous obtiendrez <span class="badge badge-pill badge-success">' + story.effort + " px</span> si:";
+        storydiv.appendChild(p);
         tests.classList.add("card-body");
         await appendTests(storyid, tests);
         storydiv.appendChild(tests);
         output.appendChild(storydiv);
+        let btnCopy = document.createElement("div");
+        btnCopy.classList.add("btn", "btn-primary", "btn-sm", "float-right");
+        btnCopy.innerText = "Prendre";
+        btnCopy.dataset.story_id = story.id;
+        btnCopy.addEventListener("click", (evt) => takeStory(evt.target.dataset.story_id));
+        tests.appendChild(btnCopy);
       })
       .catch(function (err) {
         console.log(err);
@@ -179,14 +191,46 @@
         return response.json();
       })
       .then(function (tests) {
+        let ul = document.createElement("ul");
         for (test of tests) {
-          let para = document.createElement("p");
+          let para = document.createElement("li");
           para.innerText = test.description;
-          output.appendChild(para);
+          ul.appendChild(para);
         }
+        output.appendChild(ul);
       })
       .catch(function (err) {
         console.log(err);
+      });
+  }
+
+  // The student takes on a mission, i.e: we copy the story from the master project to the student's project
+  async function takeStory(story_id) {
+    await fetch(API_source_url + "/story/" + story_id + "?icescrum-token=" + iceScrumToken)
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (storysource) {
+        console.log("copy");
+        delete storysource.feature; // because there's no matching feature in the destination project
+        const requestOptions = {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": true
+          },
+          body: { story: storysource }
+        };
+        fetch(API_project_url + "/story/" + "?icescrum-token=" + iceScrumToken, requestOptions)
+          .then((response) => response.json())
+          .then((data) => console.log("success:" + data))
+          .catch(function (err) {
+            console.log("Problem: " + err);
+          });
+      })
+      .catch(function (err) {
+        console.log("Problem: " + err);
       });
   }
 </script>
