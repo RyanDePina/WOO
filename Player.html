@@ -80,6 +80,8 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
   // ============ Initialization =================
+  var playerStories = []; // the title of the stories the player has taken into his project
+  // we use the title because the id may have changed in the copy from master
 
   if (typeof API_base_url == "undefined")
     alert("L'adresse du serveur IceScrum n'est pas définie. Vérifiez votre configuration (comparez-la avec l'exemple)");
@@ -99,8 +101,26 @@
       .then(function (response) {
         return response.json();
       })
-      .then(function (data) {
+      .then(async function (data) {
         heaProjectTitle.innerText = data.name;
+        // Build the list of stories the player already has
+        await fetch(API_project_url + "/story?icescrum-token=" + iceScrumToken)
+          .then(function (response) {
+            return response.json();
+          })
+          .then(async function (stories) {
+            // we only take the stories of sprint 1. This allows us to easily manage which stories are part of the game
+            for (story of stories) {
+              playerStories.push(story.name);
+            }
+            console.log(playerStories);
+          })
+          .catch(function (erreur) {
+            alert(
+              "Erreur de connexion au serveur IceScrum\n\nSi internet est ok (=vous pouvez atteindre icescrum.cpnv.ch avec votre navigateur), alors c'est probablement que le code du projet est faux ou que votre token est pourri"
+            );
+            window.close();
+          });
       });
 
     API_source_url = API_base_url + "WOOMASTER";
@@ -110,7 +130,7 @@
       .then(function (response) {
         return response.json();
       })
-      .then(function (data) {
+      .then(async function (data) {
         document.title = "WOO Player";
         appendContent(output);
       })
@@ -129,6 +149,8 @@
         return response.json();
       })
       .then(async function (sprints) {
+        let ignore = []; // the stories we ignore in the list because they have already been taken
+        // we only take the stories of sprint 1. This allows us to easily manage which stories are part of the game
         for (story_id of sprints[0].stories_ids) {
           await appendStory(story_id.id, output);
         }
@@ -201,23 +223,26 @@
       .then(function (response) {
         return response.json();
       })
-      .then(function (storysource) {
-        console.log("copy");
+      .then(async function (storysource) {
         delete storysource.feature; // because there's no matching feature in the destination project
-        const requestOptions = {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Credentials": true
-          },
-          body: { story: storysource }
-        };
-        fetch(API_project_url + "/story/" + "?icescrum-token=" + iceScrumToken, requestOptions)
-          .then((response) => response.json())
-          .then((data) => console.log("success:" + data))
-          .catch(function (err) {
-            console.log("Problem: " + err);
+        // copy the story with axios, works where fetch fails for an unknown reason
+        let action = API_project_url + "/story/" + "?icescrum-token=" + iceScrumToken;
+        await axios
+          .post(
+            action,
+            {
+              story: storysource
+            },
+            {
+              "Content-Type": "application/json",
+              Accept: "application/json"
+            }
+          )
+          .then(function (response) {
+            alert(response.notes_html);
+          })
+          .catch(function (error) {
+            alert(error.response.data[0].text);
           });
       })
       .catch(function (err) {
