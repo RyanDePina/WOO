@@ -93,11 +93,11 @@
     divBadConfig.classList.remove("d-none");
   }
 
-  function loadProject() {
+  async function loadProject() {
     heaProjectTitle.innerText = projectId;
     API_project_url = API_base_url + projectId;
     // Project name
-    fetch(API_project_url + "/?icescrum-token=" + iceScrumToken)
+    await fetch(API_project_url + "/?icescrum-token=" + iceScrumToken)
       .then(function (response) {
         return response.json();
       })
@@ -113,7 +113,6 @@
             for (story of stories) {
               playerStories.push(story.name);
             }
-            console.log(playerStories);
           })
           .catch(function (erreur) {
             alert(
@@ -149,17 +148,28 @@
         return response.json();
       })
       .then(async function (sprints) {
-        let ignore = []; // the stories we ignore in the list because they have already been taken
         // we only take the stories of sprint 1. This allows us to easily manage which stories are part of the game
         for (story_id of sprints[0].stories_ids) {
           await appendStory(story_id.id, output);
         }
+        // Add list of missions already taken at the bottom
+        let t = document.createElement("h4");
+        t.innerText = "Vos missions";
+        output.appendChild(t);
+        let ul = document.createElement("ul");
+        for (story of playerStories) {
+          let li = document.createElement("li");
+          li.innerText = story;
+          ul.appendChild(li);
+        }
+        output.appendChild(ul);
       })
       .catch(function (erreur) {
+        console.log(erreur);
         alert(
           "Erreur de connexion au serveur IceScrum\n\nSi internet est ok (=vous pouvez atteindre icescrum.cpnv.ch avec votre navigateur), alors c'est probablement que le code du projet est faux ou que votre token est pourri"
         );
-        window.close();
+        //window.close();
       });
   }
 
@@ -171,27 +181,30 @@
         return response.json();
       })
       .then(async function (story) {
-        // header
-        let header = document.createElement("div");
-        header.classList.add("card-header");
-        header.innerHTML = "<h5>" + story.name + "</h5>" + story.description;
-        storydiv.appendChild(header);
-        let tests = document.createElement("div");
+        if (!playerStories.includes(story.name)) {
+          // header
+          let header = document.createElement("div");
+          header.classList.add("card-header");
+          header.innerHTML = "<h5>" + story.name + "</h5>" + story.description;
+          storydiv.appendChild(header);
+          let tests = document.createElement("div");
 
-        // body
-        let p = document.createElement("p");
-        p.innerHTML = 'Vous obtiendrez <span class="badge badge-pill badge-success">' + story.effort + " px</span> si:";
-        storydiv.appendChild(p);
-        tests.classList.add("card-body");
-        await appendTests(storyid, tests);
-        storydiv.appendChild(tests);
-        output.appendChild(storydiv);
-        let btnCopy = document.createElement("div");
-        btnCopy.classList.add("btn", "btn-primary", "btn-sm", "float-right");
-        btnCopy.innerText = "Prendre";
-        btnCopy.dataset.story_id = story.id;
-        btnCopy.addEventListener("click", (evt) => takeStory(evt.target.dataset.story_id));
-        tests.appendChild(btnCopy);
+          // body
+          let p = document.createElement("p");
+          p.innerHTML =
+            'Vous obtiendrez <span class="badge badge-pill badge-success">' + story.effort + " px</span> si:";
+          storydiv.appendChild(p);
+          tests.classList.add("card-body");
+          await appendTests(storyid, tests);
+          storydiv.appendChild(tests);
+          output.appendChild(storydiv);
+          let btnCopy = document.createElement("div");
+          btnCopy.classList.add("btn", "btn-primary", "btn-sm", "float-right");
+          btnCopy.innerText = "Prendre";
+          btnCopy.dataset.story_id = story.id;
+          btnCopy.addEventListener("click", (evt) => takeStory(evt.target.dataset.story_id));
+          tests.appendChild(btnCopy);
+        }
       })
       .catch(function (err) {
         console.log(err);
