@@ -111,7 +111,7 @@
           .then(async function (stories) {
             // we only take the stories of sprint 1. This allows us to easily manage which stories are part of the game
             for (story of stories) {
-              playerStories.push(story.name);
+              playerStories.push(story);
             }
           })
           .catch(function (erreur) {
@@ -159,7 +159,7 @@
         let ul = document.createElement("ul");
         for (story of playerStories) {
           let li = document.createElement("li");
-          li.innerText = story;
+          li.innerText = story.name;
           ul.appendChild(li);
         }
         output.appendChild(ul);
@@ -181,7 +181,7 @@
         return response.json();
       })
       .then(async function (story) {
-        if (!playerStories.includes(story.name)) {
+        if (!playerStories.find((s) => s.name === story.name)) {
           // header
           let header = document.createElement("div");
           header.classList.add("card-header");
