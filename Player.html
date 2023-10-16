@@ -227,12 +227,13 @@
 
   // Add the stories the player has already taken
   function appendPlayerStories(output) {
+    let btnFinish;
     let t = document.createElement("h4");
     t.innerText = "Vos missions";
     output.appendChild(t);
     for (story of playerStories) {
       let div = document.createElement("div");
-      //div.classList.add("row");
+      div.classList.add("m-2");
       let px = document.createElement("span");
       px.innerText = story.value + " px";
       px.classList.add("badge", "badge-pill", "badge-success", "mr-3");
@@ -240,6 +241,7 @@
       title.innerText = story.name;
       title.classList.add("mr-3");
       let status = document.createElement("span");
+      btnFinish = null;
       switch (story.state) {
         case IN_REVIEW:
           status.innerText = "En attente de validation";
@@ -252,10 +254,17 @@
         default:
           status.innerText = "En cours";
           status.classList.add("badge", "badge-light");
+          // finish button
+          btnFinish = document.createElement("div");
+          btnFinish.classList.add("btn", "btn-primary", "btn-sm", "ml-5");
+          btnFinish.innerText = "Terminé";
+          btnFinish.dataset.story_id = story.id;
+          btnFinish.addEventListener("click", (evt) => finishStory(evt.target.dataset.story_id));
       }
       div.appendChild(px);
       div.appendChild(title);
       div.appendChild(status);
+      if (btnFinish !== null) div.appendChild(btnFinish);
       output.appendChild(div);
     }
   }
@@ -282,7 +291,8 @@
             }
           )
           .then(function (response) {
-            alert(response.notes_html);
+            planStory(response.data.id); // the story must be planned in order allow marking it as in review
+            alert(storysource.notes_html);
           })
           .catch(function (error) {
             alert(error.response.data[0].text);
@@ -290,6 +300,45 @@
       })
       .catch(function (err) {
         console.log("Problem: " + err);
+      });
+  }
+
+  // Move a story all the way from suggested to planned
+  // This assumes that there is an active sprint in the project
+  async function planStory(story_id) {
+    // first accept it
+    await axios.put(API_project_url + "/story/" + story_id + "/accept?icescrum-token=" + iceScrumToken);
+    // then plan it
+    await axios
+      .get(API_project_url + "/sprint/currentOrNextOrLast?icescrum-token=" + iceScrumToken)
+      .then(async function (sprint) {
+        await axios
+          .put(API_project_url + "/story/" + story_id + "/plan?icescrum-token=" + iceScrumToken, {
+            story: { parentSprint: { id: sprint.data.id } }
+          })
+          .then(() => alert("ok"))
+          .catch((err) => console.log(err));
+      })
+      .catch((err) => console.log(err));
+  }
+
+  // The student notifies that the story is ready for review by the PNJ
+  async function finishStory(story_id) {
+    let action = API_project_url + "/story/" + story_id + "/markInReview?icescrum-token=" + iceScrumToken;
+    await axios
+      .put(
+        action,
+        {},
+        {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        }
+      )
+      .then(function (response) {
+        alert("C'est noté");
+      })
+      .catch(function (error) {
+        console.log(error);
       });
   }
 </script>
