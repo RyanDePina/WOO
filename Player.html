@@ -79,6 +79,10 @@
 </html>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
+  // IceScrum stories state
+  const IN_REVIEW = 6;
+  const DONE = 7;
+
   // ============ Initialization =================
   var playerStories = []; // the title of the stories the player has taken into his project
   // we use the title because the id may have changed in the copy from master
@@ -153,16 +157,7 @@
           await appendStory(story_id.id, output);
         }
         // Add list of missions already taken at the bottom
-        let t = document.createElement("h4");
-        t.innerText = "Vos missions";
-        output.appendChild(t);
-        let ul = document.createElement("ul");
-        for (story of playerStories) {
-          let li = document.createElement("li");
-          li.innerText = story.name;
-          ul.appendChild(li);
-        }
-        output.appendChild(ul);
+        appendPlayerStories(output);
       })
       .catch(function (erreur) {
         console.log(erreur);
@@ -192,7 +187,7 @@
           // body
           let p = document.createElement("p");
           p.innerHTML =
-            'Vous obtiendrez <span class="badge badge-pill badge-success">' + story.effort + " px</span> si:";
+            'Vous obtiendrez <span class="badge badge-pill badge-success">' + story.value + " px</span> si:";
           storydiv.appendChild(p);
           tests.classList.add("card-body");
           await appendTests(storyid, tests);
@@ -228,6 +223,41 @@
       .catch(function (err) {
         console.log(err);
       });
+  }
+
+  // Add the stories the player has already taken
+  function appendPlayerStories(output) {
+    let t = document.createElement("h4");
+    t.innerText = "Vos missions";
+    output.appendChild(t);
+    for (story of playerStories) {
+      let div = document.createElement("div");
+      //div.classList.add("row");
+      let px = document.createElement("span");
+      px.innerText = story.value + " px";
+      px.classList.add("badge", "badge-pill", "badge-success", "mr-3");
+      let title = document.createElement("span");
+      title.innerText = story.name;
+      title.classList.add("mr-3");
+      let status = document.createElement("span");
+      switch (story.state) {
+        case IN_REVIEW:
+          status.innerText = "En attente de validation";
+          status.classList.add("badge", "badge-warning");
+          break;
+        case DONE:
+          status.innerText = "Terminée";
+          status.classList.add("badge", "badge-success");
+          break;
+        default:
+          status.innerText = "En cours";
+          status.classList.add("badge", "badge-light");
+      }
+      div.appendChild(px);
+      div.appendChild(title);
+      div.appendChild(status);
+      output.appendChild(div);
+    }
   }
 
   // The student takes on a mission, i.e: we copy the story from the master project to the student's project
