@@ -119,7 +119,7 @@
     <!-- ============= Popup ================ -->
     <div id="popup" class="popup shadow">
       <div class="popup-content">
-        <span id="popupText"></span>
+        <span id="popupText" class="text-left"></span>
         <button class="btn btn-sm btn-primary" id="reloadButton">Ok</button>
       </div>
     </div>
@@ -262,6 +262,7 @@
               break;
             default:
               storydiv.classList.add("inprogress");
+
               // finish button
               btnFinish = document.createElement("div");
               btnFinish.classList.add("btn", "btn-primary", "btn-sm", "float-right");
@@ -269,6 +270,17 @@
               btnFinish.dataset.story_id = playerStory.id;
               btnFinish.addEventListener("click", (evt) => finishStory(evt.target.dataset.story_id));
               tests.appendChild(btnFinish);
+
+              // help button
+              btnHelp = document.createElement("div");
+              btnHelp.classList.add("badge", "badge-pill", "badge-secondary", "float-right", "mr-3");
+              btnHelp.innerText = "?";
+              btnHelp.dataset.story_id = playerStory.id;
+              btnHelp.addEventListener("click", (evt) => {
+                playerStory = playerStories.find((s) => s.id == parseInt(evt.target.dataset.story_id));
+                openPopup(playerStory.notes_html);
+              });
+              tests.appendChild(btnHelp);
           }
         } else {
           // The story can be taken by the player
