@@ -74,6 +74,15 @@
         border-radius: 15px;
         text-align: center;
       }
+
+      .officon {
+        float: right;
+        transform: rotate(45deg);
+        margin-top: -40px;
+        opacity: 50%;
+        width: 25px;
+        height: 25px;
+      }
     </style>
   </head>
   <body>
@@ -259,8 +268,20 @@
     // header
     let header = document.createElement("div");
     header.classList.add("card-header");
-    header.innerHTML = "<h5>" + story.name + "</h5>" + story.description;
+    let stoname = document.createElement("h5");
+    stoname.innerText = story.name;
+    header.appendChild(stoname);
+    let officon = document.createElement("img");
+    officon.classList.add("officon");
+    officon.title = story.feature.name;
+    console.log(story.feature.name.toLowerCase());
+    officon.src = story.feature.name.toLowerCase().charAt(0) + ".png";
+    header.appendChild(officon);
+    let stodesc = document.createElement("p");
+    stodesc.innerText = story.description;
+    header.appendChild(stodesc);
     storydiv.appendChild(header);
+
     let tests = document.createElement("div");
 
     // body
