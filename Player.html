@@ -173,7 +173,9 @@
           })
           .catch(function (erreur) {
             alert(
-              "Erreur de connexion au serveur IceScrum\n\nSi internet est ok (=vous pouvez atteindre icescrum.cpnv.ch avec votre navigateur), alors c'est probablement que le code du projet est faux ou que votre token est pourri"
+              "Erreur de connexion au serveur IceScrum\n\nSi internet est ok (=vous pouvez atteindre " +
+                API_base_url +
+                " avec votre navigateur), alors c'est probablement que le code du projet est faux ou que votre token est pourri"
             );
             window.close();
           });
@@ -192,7 +194,9 @@
       })
       .catch(function (erreur) {
         alert(
-          "Erreur de connexion au serveur IceScrum\n\nSi internet est ok (=vous pouvez atteindre icescrum.cpnv.ch avec votre navigateur), alors c'est probablement votre token est pourri ou que le projet P_OFFICE de base (POFFICEMAS) n'est pas atteignable"
+          "Erreur de connexion au serveur IceScrum\n\nSi internet est ok (=vous pouvez atteindre " +
+            API_base_url +
+            " avec votre navigateur), alors c'est probablement votre token est pourri ou que le projet P_OFFICE de base (POFFICEMAS) n'est pas atteignable"
         );
         window.close();
       });
@@ -239,7 +243,9 @@
       .catch(function (erreur) {
         console.log(erreur);
         alert(
-          "Erreur de connexion au serveur IceScrum\n\nSi internet est ok (=vous pouvez atteindre icescrum.cpnv.ch avec votre navigateur), alors c'est probablement que le code du projet est faux ou que votre token est pourri"
+          "Erreur de connexion au serveur IceScrum\n\nSi internet est ok (=vous pouvez atteindre " +
+            API_base_url +
+            " avec votre navigateur), alors c'est probablement que le code du projet est faux ou que votre token est pourri"
         );
         //window.close();
       });
