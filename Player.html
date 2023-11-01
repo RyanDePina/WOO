@@ -401,7 +401,6 @@
       .get(API_source_url + "/acceptanceTest/story/" + source.id + "?icescrum-token=" + iceScrumToken)
       .then(async function (tests) {
         for (test of tests.data) {
-          console.log(test);
           test.parentStory = destination;
           await axios
             .post(API_project_url + "/acceptanceTest?icescrum-token=" + iceScrumToken, { acceptanceTest: test })
