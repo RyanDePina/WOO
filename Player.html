@@ -218,9 +218,20 @@
               console.log(err);
             });
         }
-        console.log(masterStories);
         for (story of masterStories) {
-          await appendStory(story, output);
+          let dependenciesMet = true;
+          if (story.dependsOn != null) {
+            // get the name of the story (can't use id: it has changed in the copy process)
+            let storyName = masterStories.find((s) => s.id === story.dependsOn.id).name;
+            // search it in the player stories
+            let depstory = playerStories.find((s) => s.name === storyName);
+            dependenciesMet = typeof depstory == "undefined" || depstory.state == DONE;
+          }
+          if (dependenciesMet) {
+            appendStory(story, output);
+          } else {
+            console.log("skip " + story.name + " (dependency not met)");
+          }
         }
         // Show level
         divLevel.innerText = "Niveau " + Math.round(px / 10 + 1);
