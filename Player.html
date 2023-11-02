@@ -344,7 +344,7 @@
   }
 
   async function appendTests(storyid, output) {
-    await fetch(API_source_url + "/acceptanceTest/story/" + story_id.id + "?icescrum-token=" + iceScrumToken)
+    await fetch(API_source_url + "/acceptanceTest/story/" + storyid + "?icescrum-token=" + iceScrumToken)
       .then(function (response) {
         return response.json();
       })
