@@ -328,6 +328,7 @@
           });
           tests.appendChild(btnHelp);
       }
+      await appendComments(playerStory, storydiv);
     } else {
       // The story can be taken by the player
       storydiv.classList.add("bg-white");
@@ -343,6 +344,38 @@
     }
   }
 
+  // Appends the comments found on the player's story
+  async function appendComments(story, output) {
+    await fetch(API_project_url + "/comment/story?icescrum-token=" + iceScrumToken)
+      .then(function (response) {
+        return response.json();
+      })
+      .then(async function (comments) {
+        let commentsString = [];
+        for (comment of comments) {
+          if (comment.commentable.id == story.id) {
+            commentsString.push(
+              "(" +
+                comment.dateCreated.substring(0, 16).replace("T", " ") +
+                ", " +
+                comment.poster.firstName +
+                " " +
+                comment.poster.lastName +
+                ") " +
+                comment.body
+            );
+          }
+        }
+        if (commentsString.length > 0) {
+          let commentsIcon = document.createElement("img");
+          commentsIcon.src = "comment.png";
+          commentsIcon.style.width = "16px";
+          commentsIcon.style.height = "16px";
+          commentsIcon.title = commentsString.join("\\n");
+          output.appendChild(commentsIcon);
+        }
+      });
+  }
   async function appendTests(storyid, output) {
     await fetch(API_source_url + "/acceptanceTest/story/" + storyid + "?icescrum-token=" + iceScrumToken)
       .then(function (response) {
