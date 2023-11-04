@@ -94,6 +94,17 @@
         width: 25px;
         height: 25px;
       }
+
+      .test_state_1 {
+      }
+      .test_state_5 {
+        font-weight: bold;
+        color: red;
+      }
+      .test_state_10 {
+        font-weight: bold;
+        color: green;
+      }
     </style>
   </head>
   <body>
@@ -165,7 +176,8 @@
   // ============ Initialization =================
   var masterStories = []; // the stories the master publishes to the players
   var playerStories = []; // the stories the player has taken into his project
-  var storyComments = []; // all comments on all stories, indexed by story id
+  var storyComments = []; // all comments on all stories
+  var acceptanceTests = []; // all acceptance tests of all stories
 
   // Player level
   var px = 0;
@@ -196,7 +208,7 @@
             return response.json();
           })
           .then(async function (stories) {
-            // we only take the stories of sprint 1. This allows us to easily manage which stories are part of the game
+            // we take all stories from the player project
             for (story of stories) {
               playerStories.push(story);
             }
@@ -216,6 +228,14 @@
           })
           .then(async function (comments) {
             storyComments = comments;
+          });
+        // Collect all acceptanceTests
+        await fetch(API_project_url + "/acceptanceTest?icescrum-token=" + iceScrumToken)
+          .then(function (response) {
+            return response.json();
+          })
+          .then(async function (tests) {
+            acceptanceTests = tests;
           });
       });
 
@@ -385,6 +405,7 @@
     });
     output.appendChild(commentsIcon);
   }
+
   async function appendTests(storyid, output) {
     await fetch(API_source_url + "/acceptanceTest/story/" + storyid + "?icescrum-token=" + iceScrumToken)
       .then(function (response) {
@@ -393,8 +414,12 @@
       .then(function (tests) {
         let ul = document.createElement("ul");
         for (test of tests) {
+          let playertest = acceptanceTests.find((t) => t.name == "test_" + test.id);
           let para = document.createElement("li");
           para.innerText = test.description;
+          if (typeof playertest !== "undefined") {
+            para.classList.add("test_state_" + playertest.state);
+          }
           ul.appendChild(para);
         }
         output.appendChild(ul);
@@ -486,6 +511,7 @@
       .then(async function (tests) {
         for (test of tests.data) {
           test.parentStory = destination;
+          test.name = "test_" + test.id; // in order to retrieve the status later on
           await axios
             .post(API_project_url + "/acceptanceTest?icescrum-token=" + iceScrumToken, { acceptanceTest: test })
             .catch((err) => console.log(err));
