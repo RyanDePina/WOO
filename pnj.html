@@ -84,7 +84,6 @@
       </div>
     </div>
     <div id="output" style="margin: 30px"></div>
-    <div id="btnReset" class="btn btn-sm btn-warning float-right">Reset</div>
     <div style="font-size: x-small">V2.0</div>
   </body>
 </html>
@@ -190,9 +189,15 @@
       })
       .then(async function (story) {
         if (story.state == 6) {
+          console.log(story);
           // in review
           storydiv.innerHTML = "<h5>" + story.name + ":<br><br>" + story.description + "</h5>";
           storydiv.classList.add("row", "text-center", "bg-light", "p-3");
+          let link = document.createElement("a");
+          link.href = story.permalink;
+          link.innerText = "IceScrum";
+          link.target = "blank";
+          storydiv.appendChild(link);
           output.appendChild(storydiv);
           await appendTests(storyid, output);
         }
@@ -319,19 +324,4 @@
         console.log(error);
       });
   }
-
-  // Reset button
-  btnReset.addEventListener("click", async function () {
-    if (btnReset.innerHTML == "Reset") {
-      btnReset.innerHTML = "Sûr ?";
-      setTimeout(function () {
-        btnReset.innerHTML = "Reset";
-      }, 1000); // return to normal if no click
-    } else {
-      btnReset.classList.add("d-none");
-      for (box of document.getElementsByClassName("default-result")) {
-        await setResult(box, 1);
-      }
-    }
-  });
 </script>
