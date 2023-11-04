@@ -82,6 +82,10 @@
         text-align: left;
       }
 
+      #inpComment {
+        width: 400px;
+      }
+
       .officon {
         float: right;
         transform: rotate(45deg);
@@ -143,7 +147,9 @@
     <!-- ============= Comments dialog ================ -->
     <div id="commentsDialog" class="popup shadow">
       <div class="dialog-content">
-        <span id="dialogText" class="text-left"></span>
+        <input type="text" id="inpComment" width="60" />
+        <div id="cmdAddComment" class="btn btn-sm btn-primary">Ok</div>
+        <div id="dialogText" class="text-left"></div>
       </div>
     </div>
   </body>
@@ -366,19 +372,18 @@
     }
   }
 
+  // Add a button to open the comment dialog popup
   function addCommentsButton(story, output) {
-    if (storyComments.filter((c) => c.commentable.id == story.id).length > 0) {
-      // there are comments on this story
-      let commentsIcon = document.createElement("img");
-      commentsIcon.src = "comment.png";
-      commentsIcon.style.width = "16px";
-      commentsIcon.style.height = "16px";
-      commentsIcon.dataset.story = story.id;
-      commentsIcon.addEventListener("click", function (e) {
-        openDialog(e);
-      });
-      output.appendChild(commentsIcon);
-    }
+    // there are comments on this story
+    let commentsIcon = document.createElement("img");
+    commentsIcon.src = "comment.png";
+    commentsIcon.style.width = "16px";
+    commentsIcon.style.height = "16px";
+    commentsIcon.dataset.story = story.id;
+    commentsIcon.addEventListener("click", function (e) {
+      openDialog(e);
+    });
+    output.appendChild(commentsIcon);
   }
   async function appendTests(storyid, output) {
     await fetch(API_source_url + "/acceptanceTest/story/" + storyid + "?icescrum-token=" + iceScrumToken)
@@ -550,7 +555,27 @@
     commentsDialog.style.display = "flex"; // Show the popup
     // Change the text inside the popup
     dialogText.innerHTML = commentsString.join("<br>");
+    cmdAddComment.dataset.story = e.target.dataset.story;
   }
+
+  // Posting a comment
+  cmdAddComment.addEventListener("click", function (e) {
+    closeDialog();
+    axios
+      .post(API_project_url + "/comment?icescrum-token=" + iceScrumToken, {
+        comment: {
+          body: inpComment.value,
+          commentable: {
+            id: e.target.dataset.story,
+            class: "Story"
+          }
+        }
+      })
+      .then(() => {
+        openPopup("C'est noté");
+      })
+      .catch((err) => console.log(err));
+  });
 
   // Function to close the popup
   function closeDialog() {
