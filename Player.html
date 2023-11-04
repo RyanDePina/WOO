@@ -132,6 +132,13 @@
         <button class="btn btn-sm btn-primary" id="reloadButton">Ok</button>
       </div>
     </div>
+
+    <!-- ============= Comments dialog ================ -->
+    <div id="commentsDialog" class="popup shadow">
+      <div class="popup-content">
+        <span id="dialogText" class="text-left"></span>
+      </div>
+    </div>
   </body>
 </html>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -274,7 +281,6 @@
     let officon = document.createElement("img");
     officon.classList.add("officon");
     officon.title = story.feature.name;
-    console.log(story.feature.name.toLowerCase());
     officon.src = story.feature.name.toLowerCase().charAt(0) + ".png";
     header.appendChild(officon);
     let stodesc = document.createElement("p");
@@ -372,6 +378,10 @@
           commentsIcon.style.width = "16px";
           commentsIcon.style.height = "16px";
           commentsIcon.title = commentsString.join("\n");
+          commentsIcon.dataset.story = story.id;
+          commentsIcon.addEventListener("click", function (e) {
+            openDialog("comments on " + e.target.dataset.story);
+          });
           output.appendChild(commentsIcon);
         }
       });
@@ -521,6 +531,27 @@
   popup.addEventListener("click", (event) => {
     if (event.target === popup) {
       closePopup();
+    }
+  });
+</script>
+<script>
+  // Comment dialog
+  // Add a click event listener to the "Open Popup" button
+  function openDialog(html) {
+    commentsDialog.style.display = "flex"; // Show the popup
+    // Change the text inside the popup
+    dialogText.innerHTML = html;
+  }
+
+  // Function to close the popup
+  function closeDialog() {
+    commentsDialog.style.display = "none";
+  }
+
+  // Close the popup when clicking outside of it
+  commentsDialog.addEventListener("click", (event) => {
+    if (event.target === commentsDialog) {
+      closeDialog();
     }
   });
 </script>
