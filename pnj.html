@@ -91,6 +91,8 @@
 <script>
   // ============ Initialization =================
 
+  var storyComments = []; // all comments on all player stories
+
   if (typeof API_base_url == "undefined")
     alert("L'adresse du serveur IceScrum n'est pas définie. Vérifiez votre configuration (comparez-la avec l'exemple)");
 
@@ -148,6 +150,14 @@
         spnProjName.innerText = "Player " + data.name;
         document.title = "WOO Player " + data.name;
       });
+    // Collect all comments
+    fetch(API_project_url + "/comment/story?icescrum-token=" + iceScrumToken)
+      .then(function (response) {
+        return response.json();
+      })
+      .then(async function (comments) {
+        storyComments = comments;
+      });
     appendContent(output);
   }
 
@@ -189,7 +199,6 @@
       })
       .then(async function (story) {
         if (story.state == 6) {
-          console.log(story);
           // in review
           storydiv.innerHTML = "<h5>" + story.name + ":<br><br>" + story.description + "</h5>";
           storydiv.classList.add("row", "text-center", "bg-light", "p-3");
@@ -200,6 +209,7 @@
           storydiv.appendChild(link);
           output.appendChild(storydiv);
           await appendTests(storyid, output);
+          appendComments(storyid, output);
         }
       })
       .catch(function (err) {
@@ -285,6 +295,29 @@
       });
   }
 
+  function appendComments(storyid, output) {
+    let commentsString = [];
+    for (comment of storyComments) {
+      if (comment.commentable.id == storyid) {
+        commentsString.push(
+          "(" +
+            comment.dateCreated.substring(0, 16).replace("T", " ") +
+            ", " +
+            comment.poster.firstName +
+            " " +
+            comment.poster.lastName +
+            ") " +
+            comment.body_html
+        );
+      }
+    }
+    let commentsdiv = document.createElement("div");
+    let title = document.createElement("h5");
+    title.innerText = "Commentaires:";
+    output.appendChild(title);
+    commentsdiv.innerHTML = commentsString.join("<br>");
+    output.appendChild(commentsdiv);
+  }
   // async because we await axios response, otherwise IceScrum chokes on concurrent requests
   async function setResult(box, result) {
     // remove all colors
