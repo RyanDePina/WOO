@@ -46,7 +46,7 @@
         height: 100%;
         z-index: -1; /* Place l'élément en arrière-plan */
 
-        background-image: url("officeicons.png");
+        background-image: url("images/officeicons.png");
         background-size: 36px 30px;
         background-repeat: repeat;
         opacity: 0.1; /* Contrôle l'opacité de l'élément */
@@ -147,7 +147,7 @@
     <!-- ============= Comments dialog ================ -->
     <div id="commentsDialog" class="popup shadow">
       <div class="dialog-content">
-        <input type="text" id="inpComment" width="60" />
+        <input type="text" id="inpComment" placeholder="Nouveau commentaire" />
         <div id="cmdAddComment" class="btn btn-sm btn-primary">Ok</div>
         <div id="dialogText" class="text-left"></div>
       </div>
@@ -303,7 +303,7 @@
     let officon = document.createElement("img");
     officon.classList.add("officon");
     officon.title = story.feature.name;
-    officon.src = story.feature.name.toLowerCase().charAt(0) + ".png";
+    officon.src = "images/" + story.feature.name.toLowerCase().charAt(0) + ".png";
     header.appendChild(officon);
     let stodesc = document.createElement("p");
     stodesc.innerText = story.description;
@@ -376,7 +376,7 @@
   function addCommentsButton(story, output) {
     // there are comments on this story
     let commentsIcon = document.createElement("img");
-    commentsIcon.src = "comment.png";
+    commentsIcon.src = "images/comment.png";
     commentsIcon.style.width = "16px";
     commentsIcon.style.height = "16px";
     commentsIcon.dataset.story = story.id;
