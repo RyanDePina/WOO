@@ -1,6 +1,6 @@
 ![](images/woo.jpeg)
 # World Of Office
-Dans un monde digitalisé, il est indispensable de maîtriser un certain nombre d'outils de base.
+Dans un monde digitalisé, vos armes sont des applications que vous maniez avec efficacité.
 
 Bienvenue dans World Of Office (WOO), un monde dans lequel vous allez démontrer votre expertise dans l'utilisation des outils de la suite Office!
 
@@ -9,3 +9,5 @@ Vous serez accompagné dans ce monde par votre prof non joueur (PnJ) auquel vous
 Avant toute chose, écoutez-le vous guider à travers [le processus de configuration](player_config.md).
 
 Maintenant que cela est fait, voyez comment vous servir de votre tableau de bord en visionnant [cette capsule vidéeo](video/woo_player.mp4).
+
+Et foncez dans le tas ...
