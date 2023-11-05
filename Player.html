@@ -141,6 +141,7 @@
       <div class="ml-5">
         <input class="filteringCheckbox" data-forstate="0" type="checkbox" checked /> A prendre<br />
         <input class="filteringCheckbox" data-forstate="5" type="checkbox" checked /> En cours<br />
+        <input class="filteringCheckbox" data-forstate="6" type="checkbox" checked /> En attente de validation<br />
         <input class="filteringCheckbox" data-forstate="7" type="checkbox" checked /> Terminées
       </div>
     </div>
@@ -210,8 +211,11 @@
           .then(async function (stories) {
             // we take all stories from the player project
             for (story of stories) {
+              if (story.state == DONE) px += story.value;
               playerStories.push(story);
             }
+            // Show level
+            divLevel.innerText = "Niveau " + Math.round(px / 10 + 1);
           })
           .catch(function (erreur) {
             alert(
@@ -295,8 +299,6 @@
             console.log("skip " + story.name + " (dependency not met)");
           }
         }
-        // Show level
-        divLevel.innerText = "Niveau " + Math.round(px / 10 + 1);
       })
       .catch(function (erreur) {
         console.log(erreur);
@@ -352,7 +354,6 @@
           break;
         case DONE:
           storydiv.classList.add("done");
-          px += story.value;
           break;
         default:
           storydiv.classList.add("inprogress");
