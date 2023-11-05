@@ -567,20 +567,20 @@
     for (comment of storyComments) {
       if (comment.commentable.id == e.target.dataset.story) {
         commentsString.push(
-          "(" +
+          "<p>(" +
             comment.dateCreated.substring(0, 16).replace("T", " ") +
             ", " +
             comment.poster.firstName +
             " " +
             comment.poster.lastName +
             ") " +
-            comment.body_html
+            comment.body_html.substring(3)
         );
       }
     }
     commentsDialog.style.display = "flex"; // Show the popup
     // Change the text inside the popup
-    dialogText.innerHTML = commentsString.join("<br>");
+    dialogText.innerHTML = commentsString.join("");
     cmdAddComment.dataset.story = e.target.dataset.story;
   }
 
