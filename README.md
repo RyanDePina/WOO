@@ -1,2 +1,11 @@
+![](images/woo.jpeg)
 # World Of Office
-Des outils sous forme de page html qui s'appuient sur l'API d'IceScrum pour masquer le fait que les missions proposées dans le cadre de la gamification de P_OFFICE ne sont en fait rien d'autre que des User Stories
+Dans un monde digitalisé, il est indispensable de maîtriser un certain nombre d'outils de base.
+
+Bienvenue dans World Of Office (WOO), un monde dans lequel vous allez démontrer votre expertise dans l'utilisation des outils de la suite Office!
+
+Vous serez accompagné dans ce monde par votre prof non joueur (PnJ) auquel vous pourrez demander conseil et assistance, et à qui vous remettrez vos quêtes achevées pour qu'il vous attribue les points d'expérience qui vous feront gagner des niveaux.
+
+Avant toute chose, écoutez-le vous guider à travers [le processus de configuration](player_config.md).
+
+Maintenant que cela est fait, voyez comment vous servir de votre tableau de bord en visionnant [cette capsule vidéeo](video/woo_player.mp4).
