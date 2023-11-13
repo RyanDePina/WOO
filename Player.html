@@ -46,7 +46,7 @@
         height: 100%;
         z-index: -1; /* Place l'élément en arrière-plan */
 
-        background-image: url("officeicons.png");
+        background-image: url("images/officeicons.png");
         background-size: 36px 30px;
         background-repeat: repeat;
         opacity: 0.1; /* Contrôle l'opacité de l'élément */
@@ -73,6 +73,37 @@
         padding: 20px;
         border-radius: 15px;
         text-align: center;
+      }
+
+      .dialog-content {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: left;
+      }
+
+      #inpComment {
+        width: 400px;
+      }
+
+      .officon {
+        float: right;
+        transform: rotate(45deg);
+        margin-top: -40px;
+        opacity: 50%;
+        width: 25px;
+        height: 25px;
+      }
+
+      .test_state_1 {
+      }
+      .test_state_5 {
+        font-weight: bold;
+        color: red;
+      }
+      .test_state_10 {
+        font-weight: bold;
+        color: green;
       }
     </style>
   </head>
@@ -110,6 +141,7 @@
       <div class="ml-5">
         <input class="filteringCheckbox" data-forstate="0" type="checkbox" checked /> A prendre<br />
         <input class="filteringCheckbox" data-forstate="5" type="checkbox" checked /> En cours<br />
+        <input class="filteringCheckbox" data-forstate="6" type="checkbox" checked /> En attente de validation<br />
         <input class="filteringCheckbox" data-forstate="7" type="checkbox" checked /> Terminées
       </div>
     </div>
@@ -121,6 +153,15 @@
       <div class="popup-content">
         <span id="popupText" class="text-left"></span>
         <button class="btn btn-sm btn-primary" id="reloadButton">Ok</button>
+      </div>
+    </div>
+
+    <!-- ============= Comments dialog ================ -->
+    <div id="commentsDialog" class="popup shadow">
+      <div class="dialog-content">
+        <input type="text" id="inpComment" placeholder="Nouveau commentaire" />
+        <div id="cmdAddComment" class="btn btn-sm btn-primary">Ok</div>
+        <div id="dialogText" class="text-left"></div>
       </div>
     </div>
   </body>
@@ -136,6 +177,8 @@
   // ============ Initialization =================
   var masterStories = []; // the stories the master publishes to the players
   var playerStories = []; // the stories the player has taken into his project
+  var storyComments = []; // all comments on all stories
+  var acceptanceTests = []; // all acceptance tests of all stories
 
   // Player level
   var px = 0;
@@ -166,10 +209,13 @@
             return response.json();
           })
           .then(async function (stories) {
-            // we only take the stories of sprint 1. This allows us to easily manage which stories are part of the game
+            // we take all stories from the player project
             for (story of stories) {
+              if (story.state == DONE) px += story.value;
               playerStories.push(story);
             }
+            // Show level
+            divLevel.innerText = "Niveau " + Math.round(px / 10 + 1);
           })
           .catch(function (erreur) {
             alert(
@@ -178,6 +224,22 @@
                 " avec votre navigateur), alors c'est probablement que le code du projet est faux ou que votre token est pourri"
             );
             window.close();
+          });
+        // Collect all comments
+        await fetch(API_project_url + "/comment/story?icescrum-token=" + iceScrumToken)
+          .then(function (response) {
+            return response.json();
+          })
+          .then(async function (comments) {
+            storyComments = comments;
+          });
+        // Collect all acceptanceTests
+        await fetch(API_project_url + "/acceptanceTest?icescrum-token=" + iceScrumToken)
+          .then(function (response) {
+            return response.json();
+          })
+          .then(async function (tests) {
+            acceptanceTests = tests;
           });
       });
 
@@ -237,8 +299,6 @@
             console.log("skip " + story.name + " (dependency not met)");
           }
         }
-        // Show level
-        divLevel.innerText = "Niveau " + Math.round(px / 10 + 1);
       })
       .catch(function (erreur) {
         console.log(erreur);
@@ -259,8 +319,19 @@
     // header
     let header = document.createElement("div");
     header.classList.add("card-header");
-    header.innerHTML = "<h5>" + story.name + "</h5>" + story.description;
+    let stoname = document.createElement("h5");
+    stoname.innerText = story.name;
+    header.appendChild(stoname);
+    let officon = document.createElement("img");
+    officon.classList.add("officon");
+    officon.title = story.feature.name;
+    officon.src = "images/" + story.feature.name.toLowerCase().charAt(0) + ".png";
+    header.appendChild(officon);
+    let stodesc = document.createElement("p");
+    stodesc.innerText = story.description;
+    header.appendChild(stodesc);
     storydiv.appendChild(header);
+
     let tests = document.createElement("div");
 
     // body
@@ -283,7 +354,6 @@
           break;
         case DONE:
           storydiv.classList.add("done");
-          px += story.value;
           break;
         default:
           storydiv.classList.add("inprogress");
@@ -307,6 +377,7 @@
           });
           tests.appendChild(btnHelp);
       }
+      addCommentsButton(playerStory, storydiv);
     } else {
       // The story can be taken by the player
       storydiv.classList.add("bg-white");
@@ -322,16 +393,34 @@
     }
   }
 
+  // Add a button to open the comment dialog popup
+  function addCommentsButton(story, output) {
+    // there are comments on this story
+    let commentsIcon = document.createElement("img");
+    commentsIcon.src = "images/comment.png";
+    commentsIcon.style.width = "16px";
+    commentsIcon.style.height = "16px";
+    commentsIcon.dataset.story = story.id;
+    commentsIcon.addEventListener("click", function (e) {
+      openDialog(e);
+    });
+    output.appendChild(commentsIcon);
+  }
+
   async function appendTests(storyid, output) {
-    await fetch(API_source_url + "/acceptanceTest/story/" + story_id.id + "?icescrum-token=" + iceScrumToken)
+    await fetch(API_source_url + "/acceptanceTest/story/" + storyid + "?icescrum-token=" + iceScrumToken)
       .then(function (response) {
         return response.json();
       })
       .then(function (tests) {
         let ul = document.createElement("ul");
         for (test of tests) {
+          let playertest = acceptanceTests.find((t) => t.name == "test_" + test.id);
           let para = document.createElement("li");
           para.innerText = test.description;
+          if (typeof playertest !== "undefined") {
+            para.classList.add("test_state_" + playertest.state);
+          }
           ul.appendChild(para);
         }
         output.appendChild(ul);
@@ -423,6 +512,7 @@
       .then(async function (tests) {
         for (test of tests.data) {
           test.parentStory = destination;
+          test.name = "test_" + test.id; // in order to retrieve the status later on
           await axios
             .post(API_project_url + "/acceptanceTest?icescrum-token=" + iceScrumToken, { acceptanceTest: test })
             .catch((err) => console.log(err));
@@ -467,6 +557,62 @@
   popup.addEventListener("click", (event) => {
     if (event.target === popup) {
       closePopup();
+    }
+  });
+</script>
+<script>
+  // Comment dialog
+  // Add a click event listener to the "Open Popup" button
+  function openDialog(e) {
+    let commentsString = [];
+    for (comment of storyComments) {
+      if (comment.commentable.id == e.target.dataset.story) {
+        commentsString.push(
+          "<p>(" +
+            comment.dateCreated.substring(0, 16).replace("T", " ") +
+            ", " +
+            comment.poster.firstName +
+            " " +
+            comment.poster.lastName +
+            ") " +
+            comment.body_html.substring(3)
+        );
+      }
+    }
+    commentsDialog.style.display = "flex"; // Show the popup
+    // Change the text inside the popup
+    dialogText.innerHTML = commentsString.join("");
+    cmdAddComment.dataset.story = e.target.dataset.story;
+  }
+
+  // Posting a comment
+  cmdAddComment.addEventListener("click", function (e) {
+    closeDialog();
+    axios
+      .post(API_project_url + "/comment?icescrum-token=" + iceScrumToken, {
+        comment: {
+          body: inpComment.value,
+          commentable: {
+            id: e.target.dataset.story,
+            class: "Story"
+          }
+        }
+      })
+      .then(() => {
+        openPopup("C'est noté");
+      })
+      .catch((err) => console.log(err));
+  });
+
+  // Function to close the popup
+  function closeDialog() {
+    commentsDialog.style.display = "none";
+  }
+
+  // Close the popup when clicking outside of it
+  commentsDialog.addEventListener("click", (event) => {
+    if (event.target === commentsDialog) {
+      closeDialog();
     }
   });
 </script>
