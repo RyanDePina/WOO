@@ -99,8 +99,9 @@
     }
   }
 
+  let testCounts = [];
   async function loadProject(projid) {
-    await new Promise((r) => setTimeout(r, 500)); // let the API breathe (I've seen it choke more than once)
+    //await new Promise((r) => setTimeout(r, 500)); // let the API breathe (I've seen it choke more than once)
     API_project_url = API_base_url + projid;
     // Build list of number of tests
     await fetch(API_project_url + "/acceptanceTest?icescrum-token=" + iceScrumToken)
@@ -109,7 +110,6 @@
       })
       .then(function (data) {
         for (test of data) {
-          var testCounts = [];
           if (typeof testCounts[test.parentStory.id] == "undefined") {
             testCounts[test.parentStory.id] = 1;
           } else {
@@ -124,7 +124,9 @@
       })
       .then(async function (data) {
         let t = document.createElement("h1");
-        t.innerText = "Player " + data.name;
+        t.innerText = data.name;
+        t.classList.add("d-none");
+        t.id = "title_" + API_project_url;
         output.appendChild(t);
         await appendContent(output, API_project_url);
       });
@@ -169,6 +171,7 @@
           storydiv.innerHTML = "<h5>" + story.name + ":<br><br>" + story.description + "</h5>";
           storydiv.classList.add("row", "text-center", "bg-light", "p-3");
           output.appendChild(storydiv);
+          document.getElementById("title_" + project_url).classList.remove("d-none");
           await appendTests(storyid, output, project_url);
         }
       })
@@ -188,10 +191,6 @@
           let tr = document.createElement("div");
           tr.classList.add("row", "border-bottom");
           output.appendChild(tr);
-          let td = document.createElement("div");
-          td.innerText = test.name;
-          td.classList.add("col-2");
-          tr.appendChild(td);
           td = document.createElement("div");
           td.innerText = test.description;
           td.classList.add("col-8");
@@ -202,6 +201,7 @@
           ru.classList = "box text-center default-result";
           ru.innerText = "?";
           ru.dataset.testid = test.id;
+          ru.dataset.projurl = project_url;
           ru.addEventListener("click", function (evt) {
             setResult(evt.target, 1); // 1 = undefined (IceScrum)
           });
@@ -209,6 +209,8 @@
           rok.classList = "box text-center";
           rok.innerText = "OK";
           rok.dataset.testid = test.id;
+          rok.dataset.projurl = project_url;
+          rok.dataset.nb_siblings = testCounts[storyid];
           rok.addEventListener("click", async function (evt) {
             await setResult(evt.target, 10); // 10 = success (IceScrum)
             // count successes
@@ -218,9 +220,9 @@
               testSuccessCounts[storyid]++;
             }
             // Check completion
-            if (testSuccessCounts[storyid] >= testCounts[storyid]) {
+            if (testSuccessCounts[storyid] >= evt.target.dataset.nb_siblings) {
               axios
-                .put(API_project_url + "/story/" + storyid + "/done?icescrum-token=" + iceScrumToken)
+                .put(evt.target.dataset.projurl + "/story/" + storyid + "/done?icescrum-token=" + iceScrumToken)
                 .then(() => {
                   console.log("Story " + storyid + " done");
                   alert("Mission accomplie");
@@ -232,6 +234,7 @@
           rko.classList = "box text-center";
           rko.innerText = "ko";
           rko.dataset.testid = test.id;
+          rko.dataset.projurl = project_url;
           rko.addEventListener("click", function (evt) {
             setResult(evt.target, 5); // 5 = failed (IceScrum)
           });
@@ -263,7 +266,8 @@
       bro.classList.remove("bg-success", "bg-danger", "bg-warning");
     }
 
-    let action = API_project_url + "/acceptanceTest/" + box.dataset.testid + "?icescrum-token=" + iceScrumToken;
+    let action = box.dataset.projurl + "/acceptanceTest/" + box.dataset.testid + "?icescrum-token=" + iceScrumToken;
+    console.log(action);
     await axios
       .put(
         action,
