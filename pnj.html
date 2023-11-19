@@ -64,6 +64,19 @@
       #inpComment {
         width: 400px;
       }
+
+      h1 {
+        background-color: black;
+        color: whitesmoke;
+        padding: 5px;
+        border-radius: 10px;
+      }
+
+      .storyheader {
+        background-color: lightgrey;
+        border-radius: 10px;
+        margin: 5px;
+      }
     </style>
   </head>
   <body>
@@ -209,7 +222,7 @@
         if (story.state == 6) {
           // in review
           storydiv.innerHTML = "<h5>" + story.name + "<br><br>" + story.description + "</h5>";
-          storydiv.classList.add("row", "text-center", "bg-light", "p-3");
+          storydiv.classList.add("row", "text-center", "storyheader", "p-3");
           let link = document.createElement("a");
           link.href = story.permalink;
           link.innerText = "IceScrum";
