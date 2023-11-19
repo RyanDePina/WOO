@@ -147,24 +147,9 @@
     }
   }
 
-  let testCounts = [];
   async function loadProject(projid) {
     //await new Promise((r) => setTimeout(r, 500)); // let the API breathe (I've seen it choke more than once)
     API_project_url = API_base_url + projid;
-    // Build list of number of tests
-    await fetch(API_project_url + "/acceptanceTest?icescrum-token=" + iceScrumToken)
-      .then(function (response) {
-        return response.json();
-      })
-      .then(function (data) {
-        for (test of data) {
-          if (typeof testCounts[test.parentStory.id] == "undefined") {
-            testCounts[test.parentStory.id] = 1;
-          } else {
-            testCounts[test.parentStory.id]++;
-          }
-        }
-      });
     // Project name
     await fetch(API_project_url + "/?icescrum-token=" + iceScrumToken)
       .then(function (response) {
@@ -247,17 +232,18 @@
         return response.json();
       })
       .then(function (tests) {
-        var testSuccessCounts = [];
+        // container for all tests
+        let alltests = document.createElement("div");
+        alltests.id = "tests_of_" + getCodeFromURL(project_url) + "_" + storyid;
+        output.appendChild(alltests);
         for (test of tests) {
           let tr = document.createElement("div");
           tr.classList.add("row", "border-bottom");
-          output.appendChild(tr);
+          alltests.appendChild(tr);
           td = document.createElement("div");
           td.innerText = test.description;
           td.classList.add("col-8");
           tr.appendChild(td);
-          td = document.createElement("div");
-          td.classList = "col-2 d-flex flex-row";
           let ru = document.createElement("div");
           ru.classList = "box text-center default-result";
           ru.innerText = "?";
@@ -271,17 +257,10 @@
           rok.innerText = "OK";
           rok.dataset.testid = test.id;
           rok.dataset.projurl = project_url;
-          rok.dataset.nb_siblings = testCounts[storyid];
           rok.addEventListener("click", async function (evt) {
             await setResult(evt.target, 10); // 10 = success (IceScrum)
-            // count successes
-            if (typeof testSuccessCounts[storyid] == "undefined") {
-              testSuccessCounts[storyid] = 1;
-            } else {
-              testSuccessCounts[storyid]++;
-            }
             // Check completion
-            if (testSuccessCounts[storyid] >= evt.target.dataset.nb_siblings) {
+            if (allTestsOk(evt.target.parentNode.parentNode)) {
               axios
                 .put(evt.target.dataset.projurl + "/story/" + storyid + "/done?icescrum-token=" + iceScrumToken)
                 .then(() => {
@@ -309,10 +288,9 @@
             default:
               ru.classList.add("bg-warning");
           }
-          td.appendChild(ru);
-          td.appendChild(rok);
-          td.appendChild(rko);
-          tr.appendChild(td);
+          tr.appendChild(ru);
+          tr.appendChild(rok);
+          tr.appendChild(rko);
         }
       })
       .catch(function (err) {
@@ -342,7 +320,6 @@
     }
 
     let action = box.dataset.projurl + "/acceptanceTest/" + box.dataset.testid + "?icescrum-token=" + iceScrumToken;
-    console.log(action);
     await axios
       .put(
         action,
@@ -373,6 +350,17 @@
         alert("Une erreur s'est produite (voir la console pour plus d'info");
         console.log(error);
       });
+  }
+
+  // Extract the IceScrum project code from the project url
+  function getCodeFromURL(url) {
+    let s = url.split("/");
+    return s[s.length - 1];
+  }
+
+  // Returns true if all child div (tests) have the OK status
+  function allTestsOk(div) {
+    return div.querySelectorAll(".bg-success").length >= div.childElementCount;
   }
 </script>
 <script>
