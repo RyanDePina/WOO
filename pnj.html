@@ -77,6 +77,12 @@
         border-radius: 10px;
         margin: 5px;
       }
+
+      .stats {
+        font-size: smaller;
+        justify-content: center;
+        margin-bottom: 3px;
+      }
     </style>
   </head>
   <body>
@@ -141,6 +147,11 @@
   // ============ Initialization =================
 
   var storyComments = []; // all comments on all player stories
+  // IceScrum stories state
+  const UNDEFINED = 0;
+  const IN_PROGRESS = 5;
+  const IN_REVIEW = 6;
+  const DONE = 7;
 
   if (typeof API_base_url == "undefined")
     alert("L'adresse du serveur IceScrum n'est pas définie. Vérifiez votre configuration (comparez-la avec l'exemple)");
@@ -154,8 +165,10 @@
     divBadConfig.classList.remove("d-none");
   }
 
+  var playerStats;
   async function loadProjects() {
     for (projectId of projectIds) {
+      playerStats = { px: 0, nbProgress: 0, nbReview: 0, nbDone: 0 };
       await loadProject(projectId);
     }
   }
@@ -171,8 +184,7 @@
       .then(async function (data) {
         let t = document.createElement("h1");
         t.innerText = data.name;
-        t.classList.add("d-none");
-        t.id = "title_" + API_project_url;
+        t.id = "title_" + projid;
         output.appendChild(t);
         await appendContent(output, API_project_url);
       });
@@ -208,6 +220,21 @@
         for (story_id of sprint.stories_ids) {
           await appendStory(story_id.id, output, project_url);
         }
+        // show player stats
+        let stats = document.createElement("div");
+        stats.classList.add("row", "stats");
+        let level = document.createElement("div");
+        level.innerHTML =
+          'Niveau <span class="badge badge-pill badge-success">' +
+          Math.round(playerStats.px / 10 + 1) +
+          "</span> en " +
+          playerStats.nbDone +
+          " quêtes (" +
+          playerStats.nbProgress +
+          " en cours)";
+        stats.appendChild(level);
+        let header = document.getElementById("title_" + getCodeFromURL(project_url));
+        header.insertAdjacentElement("afterend", stats);
       }
     }
   }
@@ -219,19 +246,30 @@
         return response.json();
       })
       .then(async function (story) {
-        if (story.state == 6) {
-          // in review
-          storydiv.innerHTML = "<h5>" + story.name + "<br><br>" + story.description + "</h5>";
-          storydiv.classList.add("row", "text-center", "storyheader", "p-3");
-          let link = document.createElement("a");
-          link.href = story.permalink;
-          link.innerText = "IceScrum";
-          link.target = "blank";
-          storydiv.appendChild(link);
-          output.appendChild(storydiv);
-          document.getElementById("title_" + project_url).classList.remove("d-none");
-          await appendTests(storyid, output, project_url);
-          addCommentsButton(storyid, output);
+        switch (story.state) {
+          case IN_REVIEW:
+            // show it
+            storydiv.innerHTML = "<h5>" + story.name + "<br><br>" + story.description + "</h5>";
+            storydiv.classList.add("row", "text-center", "storyheader", "p-3");
+            let link = document.createElement("a");
+            link.href = story.permalink;
+            link.innerText = "IceScrum";
+            link.target = "blank";
+            storydiv.appendChild(link);
+            output.appendChild(storydiv);
+            await appendTests(storyid, output, project_url);
+            addCommentsButton(storyid, output);
+            playerStats.nbReview++;
+            break;
+
+          case DONE:
+            playerStats.px += story.value;
+            playerStats.nbDone++;
+            break;
+
+          case IN_PROGRESS:
+            playerStats.nbProgress++;
+            break;
         }
       })
       .catch(function (err) {
