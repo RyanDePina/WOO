@@ -146,7 +146,6 @@
 <script>
   // ============ Initialization =================
 
-  var storyComments = []; // all comments on all player stories
   // IceScrum stories state
   const UNDEFINED = 0;
   const IN_PROGRESS = 5;
@@ -187,15 +186,6 @@
         t.id = "title_" + projid;
         output.appendChild(t);
         await appendContent(output, API_project_url);
-      });
-
-    // Collect all comments on all stories of the project
-    await fetch(API_project_url + "/comment/story?icescrum-token=" + iceScrumToken)
-      .then(function (response) {
-        return response.json();
-      })
-      .then(async function (comments) {
-        storyComments = comments;
       });
   }
 
@@ -258,7 +248,7 @@
             storydiv.appendChild(link);
             output.appendChild(storydiv);
             await appendTests(storyid, output, project_url);
-            addCommentsButton(storyid, output);
+            addCommentsButton(getCodeFromURL(project_url), storyid, output);
             playerStats.nbReview++;
             break;
 
@@ -350,12 +340,13 @@
   }
 
   // Add a button to open the comment dialog popup
-  function addCommentsButton(story, output) {
+  function addCommentsButton(project, story, output) {
     // there are comments on this story
     let commentsIcon = document.createElement("img");
     commentsIcon.src = "images/comment.png";
     commentsIcon.style.width = "16px";
     commentsIcon.style.height = "16px";
+    commentsIcon.dataset.project = project;
     commentsIcon.dataset.story = story;
     commentsIcon.addEventListener("click", function (e) {
       openDialog(e);
@@ -443,33 +434,41 @@
 <script>
   // Comment dialog
   // Add a click event listener to the "Open Popup" button
-  function openDialog(e) {
-    let commentsString = [];
-    for (comment of storyComments) {
-      if (comment.commentable.id == e.target.dataset.story) {
-        commentsString.push(
-          "<p>(" +
-            comment.dateCreated.substring(0, 16).replace("T", " ") +
-            ", " +
-            comment.poster.firstName +
-            " " +
-            comment.poster.lastName +
-            ") " +
-            comment.body_html.substring(3)
-        );
-      }
-    }
-    commentsDialog.style.display = "flex"; // Show the popup
-    // Change the text inside the popup
-    dialogText.innerHTML = commentsString.join("");
-    cmdAddComment.dataset.story = e.target.dataset.story;
+  async function openDialog(e) {
+    // Collect all comments on all stories of the project
+    await fetch(API_base_url + e.target.dataset.project + "/comment/story?icescrum-token=" + iceScrumToken)
+      .then(function (response) {
+        return response.json();
+      })
+      .then(async function (comments) {
+        let commentsString = [];
+        for (comment of comments) {
+          if (comment.commentable.id == e.target.dataset.story) {
+            commentsString.push(
+              "<p>(" +
+                comment.dateCreated.substring(0, 16).replace("T", " ") +
+                ", " +
+                comment.poster.firstName +
+                " " +
+                comment.poster.lastName +
+                ") " +
+                comment.body_html.substring(3)
+            );
+          }
+        }
+        commentsDialog.style.display = "flex"; // Show the popup
+        // Change the text inside the popup
+        dialogText.innerHTML = commentsString.join("");
+        cmdAddComment.dataset.story = e.target.dataset.story;
+        cmdAddComment.dataset.project = e.target.dataset.project;
+      });
   }
 
   // Posting a comment
   cmdAddComment.addEventListener("click", function (e) {
     closeDialog();
     axios
-      .post(API_project_url + "/comment?icescrum-token=" + iceScrumToken, {
+      .post(API_base_url + e.target.dataset.project + "/comment?icescrum-token=" + iceScrumToken, {
         comment: {
           body: inpComment.value,
           commentable: {
