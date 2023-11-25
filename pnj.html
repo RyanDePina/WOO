@@ -62,7 +62,7 @@
       }
 
       #inpComment {
-        width: 400px;
+        width: 95%;
       }
 
       h1 {
@@ -134,8 +134,8 @@
 
     <!-- ============= Comments dialog ================ -->
     <div id="commentsDialog" class="popup shadow">
-      <div class="dialog-content">
-        <input type="text" id="inpComment" placeholder="Nouveau commentaire" />
+      <div class="dialog-content w-75">
+        <textarea id="inpComment" placeholder="Nouveau commentaire" rows="3"></textarea>
         <div id="cmdAddComment" class="btn btn-sm btn-primary">Ok</div>
         <div id="dialogText" class="text-left"></div>
       </div>
@@ -341,7 +341,6 @@
 
   // Add a button to open the comment dialog popup
   function addCommentsButton(project, story, output) {
-    // there are comments on this story
     let commentsIcon = document.createElement("img");
     commentsIcon.src = "images/comment.png";
     commentsIcon.style.width = "16px";
