@@ -480,6 +480,11 @@
         openPopup("C'est noté");
       })
       .catch((err) => console.log(err));
+    if (inpComment.value.toLowerCase() != "ok") {
+      updateStoryTag(e.target.dataset.project, e.target.dataset.story, "PlayerBall");
+    } else {
+      updateStoryTag(e.target.dataset.project, e.target.dataset.story, null);
+    }
   });
 
   // Function to close the popup
@@ -493,4 +498,26 @@
       closeDialog();
     }
   });
+
+  // Change the tory tag in order to track which side has to react (if any)
+  function updateStoryTag(projectKey, storyid, value) {
+    fetch(API_base_url + projectKey + "/story/" + storyid + "?icescrum-token=" + iceScrumToken)
+      .then(function (response) {
+        return response.json();
+      })
+      .then(async function (story) {
+        story.tags = [];
+        if (value != null) {
+          story.tags.push(value);
+        }
+        axios
+          .put(API_base_url + projectKey + "/story/" + storyid + "?icescrum-token=" + iceScrumToken, {
+            story: story
+          })
+          .catch((err) => console.log(err));
+      })
+      .catch(function (err) {
+        console.log(err);
+      });
+  }
 </script>
