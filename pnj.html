@@ -83,6 +83,10 @@
         justify-content: center;
         margin-bottom: 3px;
       }
+
+      .ballbadge {
+        width: 80px;
+      }
     </style>
   </head>
   <body>
@@ -249,6 +253,7 @@
             output.appendChild(storydiv);
             await appendTests(storyid, output, project_url);
             addCommentsButton(getCodeFromURL(project_url), storyid, output);
+            addBallTag(story.tags, output);
             playerStats.nbReview++;
             break;
 
@@ -351,6 +356,17 @@
       openDialog(e);
     });
     output.appendChild(commentsIcon);
+  }
+
+  // Add a tag showing who is supposed to act next (if anybody)
+  function addBallTag(tags, output) {
+    if (tags.length > 0) {
+      let balltag = document.createElement("div");
+      let level = document.createElement("div");
+      balltag.innerHTML = tags[0];
+      balltag.classList.add("badge", "badge-pill", "badge-warning", "ballbadge");
+      output.appendChild(balltag);
+    }
   }
 
   // async because we await axios response, otherwise IceScrum chokes on concurrent requests
@@ -464,9 +480,9 @@
   }
 
   // Posting a comment
-  cmdAddComment.addEventListener("click", function (e) {
+  cmdAddComment.addEventListener("click", async function (e) {
     closeDialog();
-    axios
+    await axios
       .post(API_base_url + e.target.dataset.project + "/comment?icescrum-token=" + iceScrumToken, {
         comment: {
           body: inpComment.value,
@@ -481,7 +497,7 @@
       })
       .catch((err) => console.log(err));
     if (inpComment.value.toLowerCase() != "ok") {
-      updateStoryTag(e.target.dataset.project, e.target.dataset.story, "PlayerBall");
+      updateStoryTag(e.target.dataset.project, e.target.dataset.story, "Joueur");
     } else {
       updateStoryTag(e.target.dataset.project, e.target.dataset.story, null);
     }
@@ -499,7 +515,7 @@
     }
   });
 
-  // Change the tory tag in order to track which side has to react (if any)
+  // Change the story tag in order to track which side has to react (if any)
   function updateStoryTag(projectKey, storyid, value) {
     fetch(API_base_url + projectKey + "/story/" + storyid + "?icescrum-token=" + iceScrumToken)
       .then(function (response) {

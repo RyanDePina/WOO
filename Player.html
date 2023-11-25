@@ -105,6 +105,9 @@
         font-weight: bold;
         color: green;
       }
+      .ballbadge {
+        width: 80px;
+      }
     </style>
   </head>
   <body>
@@ -378,6 +381,7 @@
           tests.appendChild(btnHelp);
       }
       addCommentsButton(playerStory, storydiv);
+      addBallTag(playerStory.tags, storydiv);
     } else {
       // The story can be taken by the player
       storydiv.classList.add("bg-white");
@@ -405,6 +409,17 @@
       openDialog(e);
     });
     output.appendChild(commentsIcon);
+  }
+
+  // Add a tag showing who is supposed to act next (if anybody)
+  function addBallTag(tags, output) {
+    if (tags.length > 0) {
+      let balltag = document.createElement("div");
+      let level = document.createElement("div");
+      balltag.innerHTML = tags[0];
+      balltag.classList.add("badge", "badge-pill", "badge-warning", "ballbadge");
+      output.appendChild(balltag);
+    }
   }
 
   async function appendTests(storyid, output) {
@@ -586,9 +601,9 @@
   }
 
   // Posting a comment
-  cmdAddComment.addEventListener("click", function (e) {
+  cmdAddComment.addEventListener("click", async function (e) {
     closeDialog();
-    axios
+    await axios
       .post(API_project_url + "/comment?icescrum-token=" + iceScrumToken, {
         comment: {
           body: inpComment.value,
@@ -602,6 +617,11 @@
         openPopup("C'est noté");
       })
       .catch((err) => console.log(err));
+    if (inpComment.value.toLowerCase() != "ok") {
+      updateStoryTag(projectId, e.target.dataset.story, "PnJ");
+    } else {
+      updateStoryTag(projectId, e.target.dataset.story, null);
+    }
   });
 
   // Function to close the popup
@@ -615,4 +635,26 @@
       closeDialog();
     }
   });
+
+  // Change the story tag in order to track which side has to react (if any)
+  function updateStoryTag(projectKey, storyid, value) {
+    fetch(API_base_url + projectKey + "/story/" + storyid + "?icescrum-token=" + iceScrumToken)
+      .then(function (response) {
+        return response.json();
+      })
+      .then(async function (story) {
+        story.tags = [];
+        if (value != null) {
+          story.tags.push(value);
+        }
+        axios
+          .put(API_base_url + projectKey + "/story/" + storyid + "?icescrum-token=" + iceScrumToken, {
+            story: story
+          })
+          .catch((err) => console.log(err));
+      })
+      .catch(function (err) {
+        console.log(err);
+      });
+  }
 </script>
