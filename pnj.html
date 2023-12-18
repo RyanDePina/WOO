@@ -150,6 +150,8 @@
 <script>
   // ============ Initialization =================
 
+  const PX_PER_LEVEL = 10; // Number of experience points needed to gain a level
+
   // IceScrum stories state
   const UNDEFINED = 0;
   const IN_PROGRESS = 5;
@@ -220,7 +222,7 @@
         let level = document.createElement("div");
         level.innerHTML =
           'Niveau <span class="badge badge-pill badge-success">' +
-          Math.round(playerStats.px / 10 + 1) +
+          Math.round(playerStats.px / PX_PER_LEVEL + 1) +
           "</span> en " +
           playerStats.nbDone +
           " quêtes (" +
